@@ -20,14 +20,16 @@ function App() {
     setActiveTab('read')
   }
 
-  const subtitle = activeTab === 'read' ? 'Синодальный перевод' : 'Планы чтения'
-
   return (
     <div className="app">
       <header className="app-header">
         <div>
-          <h1 className="app-header__title">Bible Reader</h1>
-          <p className="app-header__subtitle">{subtitle}</p>
+          <h1 className="app-header__title">
+            {activeTab === 'read' ? 'Чтение' : 'Планы'}
+          </h1>
+          {activeTab === 'read' && (
+            <p className="app-header__subtitle">Синодальный перевод</p>
+          )}
         </div>
       </header>
 

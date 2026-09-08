@@ -73,8 +73,7 @@ export function PlansView({
     <>
       <div className="section-header">
         <div>
-          <h2 className="section-title">Планы чтения</h2>
-          <p className="section-subtitle">Распределите главы по дням и отмечайте прогресс</p>
+          <h2 className="section-title">Мои планы</h2>
         </div>
         <button type="button" className="fab" aria-label="Создать план" onClick={() => setCreateOpen(true)}>
           <PlusIcon />
@@ -92,7 +91,7 @@ export function PlansView({
           </button>
         </div>
       ) : (
-        <div className="plan-list">
+        <div className="grouped-list">
           {planCards.map(({ plan, stats }) => (
             <article key={plan.id} className="plan-card">
               <button type="button" className="plan-card__main" onClick={() => setSelectedPlanId(plan.id)}>

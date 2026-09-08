@@ -55,7 +55,6 @@ export function ReadingView({ data, bookId, chapterId, onNavigate }: ReadingView
           onClick={openPicker}
           aria-label="Выбрать книгу и главу"
         >
-          <span className="selector-chip__label">Синодальный перевод</span>
           <span className="selector-chip__value">
             {location ? formatReference(location) : 'Выберите главу'}
           </span>
