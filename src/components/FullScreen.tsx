@@ -1,12 +1,15 @@
 import { useEffect, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
 import { usePresence } from '../hooks/usePresence'
+import { ChevronLeftIcon } from './icons'
 
 interface FullScreenProps {
   open: boolean
   title: string
   onClose: () => void
   closeLabel?: string
+  backLabel?: string
+  onBack?: () => void
   children: ReactNode
   footer?: ReactNode
 }
@@ -15,7 +18,9 @@ export function FullScreen({
   open,
   title,
   onClose,
-  closeLabel = 'Закрыть',
+  closeLabel = 'Готово',
+  backLabel,
+  onBack,
   children,
   footer,
 }: FullScreenProps) {
@@ -32,13 +37,25 @@ export function FullScreen({
   if (!mounted) return null
 
   return createPortal(
-    <div className={`full-screen${visible ? ' is-open' : ''}`} role="dialog" aria-modal="true" aria-label={title}>
-      <header className="full-screen__bar">
-        <button type="button" className="nav-text" onClick={onClose}>
+    <div
+      className={`full-screen${visible ? ' is-open' : ''}`}
+      role="dialog"
+      aria-modal="true"
+      aria-label={title}
+    >
+      <header className="nav-bar nav-bar--modal">
+        {onBack ? (
+          <button type="button" className="nav-text nav-text--back nav-bar__slot" onClick={onBack}>
+            <ChevronLeftIcon />
+            {backLabel}
+          </button>
+        ) : (
+          <span className="nav-bar__slot" />
+        )}
+        <h2 className="nav-bar__title">{title}</h2>
+        <button type="button" className="nav-text nav-text--strong nav-bar__slot" onClick={onClose}>
           {closeLabel}
         </button>
-        <h1 className="full-screen__title">{title}</h1>
-        <span className="full-screen__spacer" />
       </header>
       <div className="full-screen__body">{children}</div>
       {footer && <div className="full-screen__footer">{footer}</div>}

@@ -3,10 +3,14 @@ import type { BibleData } from '../types/bible'
 import type { ReadingPlan } from '../types/plans'
 import { SCOPE_LABELS } from '../data/constants'
 import { getPlanStats } from '../services/planService'
+import { useCondensedHeader } from '../hooks/useCondensedHeader'
 import { usePresence } from '../hooks/usePresence'
+import { ConfirmDialog } from './ConfirmDialog'
 import { PlanCreateSheet } from './PlanCreateSheet'
 import { PlanDetailView } from './PlanDetailView'
-import { ProgressBar } from './ProgressBar'
+import { ProgressRing } from './ProgressRing'
+import { SwipeRow } from './SwipeRow'
+import { ChevronRightIcon } from './icons'
 
 interface PlansViewProps {
   data: BibleData
@@ -35,7 +39,9 @@ export function PlansView({
   const [createOpen, setCreateOpen] = useState(false)
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null)
   const [progressMap, setProgressMap] = useState<Record<string, string[]>>({})
+  const [pendingDelete, setPendingDelete] = useState<ReadingPlan | null>(null)
   const lastPlanRef = useRef<ReadingPlan | null>(null)
+  const { condensed, onScroll } = useCondensedHeader(28)
 
   const selectedPlan = plans.find((plan) => plan.id === selectedPlanId) ?? null
   if (selectedPlan) lastPlanRef.current = selectedPlan
@@ -60,54 +66,56 @@ export function PlansView({
 
   return (
     <div className="plans-screen">
-      <header className="screen-header screen-header--split">
-        <div>
-          <h1 className="screen-title">Планы</h1>
-          <p className="screen-subtitle">Чтение по расписанию</p>
-        </div>
-        <button type="button" className="nav-text" onClick={() => setCreateOpen(true)}>
+      <header className={`nav-bar nav-bar--large${condensed ? ' is-condensed' : ''}`}>
+        <span className="nav-bar__slot" />
+        <h1 className="nav-bar__title">Планы чтения</h1>
+        <button type="button" className="nav-text nav-bar__slot" onClick={() => setCreateOpen(true)}>
           Добавить
         </button>
       </header>
 
-      <div className="plans-body">
+      <div className="plans-body" onScroll={onScroll}>
+        <h2 className="large-title">Планы чтения</h2>
+
         {plans.length === 0 ? (
           <div className="empty-card">
             <p className="empty-card__title">Пока нет планов</p>
             <p className="empty-card__text">
-              Создайте план для всей Библии, Ветхого или Нового Завета — приложение распределит главы по дням.
+              Создайте план для всей Библии, Ветхого или Нового Завета — главы распределятся по дням.
             </p>
             <button type="button" className="primary-button" onClick={() => setCreateOpen(true)}>
-              Создать первый план
+              Создать план
             </button>
           </div>
         ) : (
-          <div className="grouped-list">
-            {planCards.map(({ plan, stats }) => (
-              <article key={plan.id} className="plan-card">
-                <button type="button" className="plan-card__main" onClick={() => setSelectedPlanId(plan.id)}>
-                  <div className="plan-card__head">
-                    <h3>{plan.name}</h3>
-                    <span>{stats.percent}%</span>
-                  </div>
-                  <p className="plan-card__meta">
-                    {SCOPE_LABELS[plan.scope]} · {plan.durationDays} дней
-                  </p>
-                  <ProgressBar value={stats.percent} size="sm" />
-                  <p className="plan-card__stats">
-                    {stats.readChapters} из {stats.totalChapters} глав · {stats.completedDays} дней завершено
-                  </p>
-                </button>
-                <button
-                  type="button"
-                  className="text-button text-button--danger"
-                  onClick={() => onRemovePlan(plan.id)}
+          <>
+            <div className="plan-list">
+              {planCards.map(({ plan, stats }) => (
+                <SwipeRow
+                  key={plan.id}
+                  actionLabel="Удалить"
+                  onAction={() => setPendingDelete(plan)}
                 >
-                  Удалить
-                </button>
-              </article>
-            ))}
-          </div>
+                  <button type="button" className="plan-card" onClick={() => setSelectedPlanId(plan.id)}>
+                    <ProgressRing value={stats.percent} />
+                    <span className="plan-card__body">
+                      <span className="plan-card__title">{plan.name}</span>
+                      <span className="plan-card__meta">
+                        {SCOPE_LABELS[plan.scope]} · {plan.durationDays} дней
+                      </span>
+                      <span className="plan-card__stats">
+                        {stats.readChapters} из {stats.totalChapters} глав · {stats.completedDays} дн. завершено
+                      </span>
+                    </span>
+                    <span className="plan-card__chevron" aria-hidden="true">
+                      <ChevronRightIcon />
+                    </span>
+                  </button>
+                </SwipeRow>
+              ))}
+            </div>
+            <p className="list-hint">Смахните карточку влево, чтобы удалить план</p>
+          </>
         )}
       </div>
 
@@ -132,6 +140,17 @@ export function PlansView({
           const plan = onAddPlan(input)
           setProgressMap((current) => ({ ...current, [plan.id]: [] }))
           return plan
+        }}
+      />
+
+      <ConfirmDialog
+        open={!!pendingDelete}
+        title={`Удалить «${pendingDelete?.name ?? ''}»?`}
+        message="Прогресс чтения по этому плану будет удалён без возможности восстановления."
+        onCancel={() => setPendingDelete(null)}
+        onConfirm={() => {
+          if (pendingDelete) onRemovePlan(pendingDelete.id)
+          setPendingDelete(null)
         }}
       />
     </div>

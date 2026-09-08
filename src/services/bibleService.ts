@@ -1,5 +1,6 @@
 import type { BibleData, Book, Chapter, ChapterLocation, ChapterRef } from '../types/bible'
 import { NT_FIRST_BOOK_ID, OT_LAST_BOOK_ID } from '../data/constants'
+import { BOOK_FULL_NAMES } from '../data/bookNames'
 
 let cache: BibleData | null = null
 
@@ -24,10 +25,14 @@ export function getChapter(data: BibleData, bookId: number, chapterId: number): 
   return getBook(data, bookId)?.Chapters.find((chapter) => chapter.ChapterId === chapterId)
 }
 
+export function getBookTitle(book: Book): string {
+  return BOOK_FULL_NAMES[book.BookId] ?? book.BookName
+}
+
 export function getChapterLocation(data: BibleData, ref: ChapterRef): ChapterLocation | undefined {
   const book = getBook(data, ref.bookId)
   if (!book) return undefined
-  return { ...ref, bookName: book.BookName }
+  return { ...ref, bookName: getBookTitle(book) }
 }
 
 export function formatReference(location: ChapterLocation): string {

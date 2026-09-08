@@ -1,15 +1,17 @@
 import { useMemo, useState } from 'react'
 import type { BibleData } from '../types/bible'
 import {
-  formatReference,
   getAdjacentChapter,
   getBook,
+  getBookTitle,
   getChapter,
   getChapterLocation,
 } from '../services/bibleService'
 import { NT_FIRST_BOOK_ID } from '../data/constants'
+import { useCondensedHeader } from '../hooks/useCondensedHeader'
 import { useHorizontalSwipe } from '../hooks/useHorizontalSwipe'
 import { FullScreen } from './FullScreen'
+import { CheckIcon } from './icons'
 
 interface ReadingViewProps {
   data: BibleData
@@ -29,13 +31,11 @@ export function ReadingView({ data, bookId, chapterId, onNavigate }: ReadingView
   const otBooks = useMemo(() => data.Books.filter((item) => item.BookId < NT_FIRST_BOOK_ID), [data])
   const ntBooks = useMemo(() => data.Books.filter((item) => item.BookId >= NT_FIRST_BOOK_ID), [data])
   const draftBook = getBook(data, draftBookId)
-
-  const goPrev = () => prev && onNavigate(prev.bookId, prev.chapterId)
-  const goNext = () => next && onNavigate(next.bookId, next.chapterId)
+  const { condensed, onScroll } = useCondensedHeader()
 
   const swipe = useHorizontalSwipe({
-    onPrev: goPrev,
-    onNext: goNext,
+    onPrev: () => prev && onNavigate(prev.bookId, prev.chapterId),
+    onNext: () => next && onNavigate(next.bookId, next.chapterId),
     enabledPrev: Boolean(prev),
     enabledNext: Boolean(next),
   })
@@ -46,31 +46,64 @@ export function ReadingView({ data, bookId, chapterId, onNavigate }: ReadingView
     setPickerOpen(true)
   }
 
-  const selectBook = (nextBookId: number) => {
-    setDraftBookId(nextBookId)
-    setPickerStep('chapter')
-  }
-
   const selectChapter = (nextChapterId: number) => {
     onNavigate(draftBookId, nextChapterId)
     setPickerOpen(false)
   }
 
+  const renderBookList = (books: typeof data.Books, title: string) => (
+    <section className="picker-group">
+      <h3 className="picker-section-title">{title}</h3>
+      <div className="inset-list">
+        {books.map((item) => {
+          const active = item.BookId === bookId
+          return (
+            <button
+              key={item.BookId}
+              type="button"
+              className={`inset-row${active ? ' inset-row--active' : ''}`}
+              onClick={() => {
+                setDraftBookId(item.BookId)
+                setPickerStep('chapter')
+              }}
+            >
+              <span className="inset-row__label">{getBookTitle(item)}</span>
+              <span className="inset-row__trailing">
+                {active && (
+                  <span className="inset-row__check">
+                    <CheckIcon />
+                  </span>
+                )}
+                {item.Chapters.length} гл.
+              </span>
+            </button>
+          )
+        })}
+      </div>
+    </section>
+  )
+
   return (
     <div className="reading-screen">
-      <header className="reader-nav">
-        <button type="button" className="header-picker" onClick={openPicker}>
-          <span className="header-picker__label">Синодальный перевод</span>
-          <span className="header-picker__value">
-            {location ? formatReference(location) : 'Выберите главу'}
+      <header className={`nav-bar nav-bar--reader${condensed ? ' is-condensed' : ''}`}>
+        <span className="nav-bar__slot" />
+        <button type="button" className="nav-bar__picker" onClick={openPicker}>
+          <span className="nav-bar__picker-title">
+            {location ? `${location.bookName} ${location.chapterId}` : 'Выберите главу'}
           </span>
+          <span className="nav-bar__picker-caption">Синодальный перевод</span>
         </button>
+        <span className="nav-bar__slot" />
       </header>
 
-      <div className="reading-body" {...swipe}>
-        <article className="passage-card">
-          {chapter ? (
-            <p className="passage-card__text">
+      <div className="reading-body" onScroll={onScroll} {...swipe}>
+        {chapter && location ? (
+          <article className="passage">
+            <div className="passage__heading">
+              <span className="passage__book">{location.bookName}</span>
+              <span className="passage__chapter">Глава {location.chapterId}</span>
+            </div>
+            <p className="passage__text">
               {chapter.Verses.map((verse) => (
                 <span key={verse.VerseId}>
                   <span className="verse-num">{verse.VerseId}</span>
@@ -78,72 +111,40 @@ export function ReadingView({ data, bookId, chapterId, onNavigate }: ReadingView
                 </span>
               ))}
             </p>
-          ) : (
-            <p className="empty-state">Глава не найдена</p>
-          )}
-        </article>
+            <p className="passage__hint">Смахните влево или вправо, чтобы сменить главу</p>
+          </article>
+        ) : (
+          <p className="empty-state">Глава не найдена</p>
+        )}
       </div>
 
       <FullScreen
         open={pickerOpen}
-        title={pickerStep === 'book' ? 'Книга' : draftBook?.BookName ?? 'Глава'}
+        title={pickerStep === 'book' ? 'Книги' : draftBook ? getBookTitle(draftBook) : 'Главы'}
         onClose={() => setPickerOpen(false)}
+        backLabel={pickerStep === 'chapter' ? 'Книги' : undefined}
+        onBack={pickerStep === 'chapter' ? () => setPickerStep('book') : undefined}
       >
         {pickerStep === 'book' ? (
           <div className="picker-sections">
-            <section className="picker-group">
-              <h3 className="picker-section-title">Ветхий Завет</h3>
-              <div className="book-list">
-                {otBooks.map((item) => (
-                  <button
-                    key={item.BookId}
-                    type="button"
-                    className={`book-row${item.BookId === bookId ? ' book-row--active' : ''}`}
-                    onClick={() => selectBook(item.BookId)}
-                  >
-                    <span>{item.BookName}</span>
-                    <span className="book-row__meta">{item.Chapters.length} гл.</span>
-                  </button>
-                ))}
-              </div>
-            </section>
-            <section className="picker-group">
-              <h3 className="picker-section-title">Новый Завет</h3>
-              <div className="book-list">
-                {ntBooks.map((item) => (
-                  <button
-                    key={item.BookId}
-                    type="button"
-                    className={`book-row${item.BookId === bookId ? ' book-row--active' : ''}`}
-                    onClick={() => selectBook(item.BookId)}
-                  >
-                    <span>{item.BookName}</span>
-                    <span className="book-row__meta">{item.Chapters.length} гл.</span>
-                  </button>
-                ))}
-              </div>
-            </section>
+            {renderBookList(otBooks, 'Ветхий Завет')}
+            {renderBookList(ntBooks, 'Новый Завет')}
           </div>
         ) : (
-          <>
-            <button type="button" className="text-button" onClick={() => setPickerStep('book')}>
-              Все книги
-            </button>
-            <div className="chapter-grid">
-              {draftBook?.Chapters.map((item) => (
-                <button
-                  key={item.ChapterId}
-                  type="button"
-                  className={`chapter-chip${
-                    draftBookId === bookId && item.ChapterId === chapterId ? ' chapter-chip--active' : ''
-                  }`}
-                  onClick={() => selectChapter(item.ChapterId)}
-                >
-                  {item.ChapterId}
-                </button>
-              ))}
-            </div>
-          </>
+          <div className="chapter-grid">
+            {draftBook?.Chapters.map((item) => (
+              <button
+                key={item.ChapterId}
+                type="button"
+                className={`chapter-chip${
+                  draftBookId === bookId && item.ChapterId === chapterId ? ' chapter-chip--active' : ''
+                }`}
+                onClick={() => selectChapter(item.ChapterId)}
+              >
+                {item.ChapterId}
+              </button>
+            ))}
+          </div>
         )}
       </FullScreen>
     </div>
