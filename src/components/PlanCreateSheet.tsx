@@ -7,7 +7,7 @@ import {
   SCOPE_LABELS,
 } from '../data/constants'
 import { getAllChapterRefs } from '../services/bibleService'
-import { BottomSheet } from './BottomSheet'
+import { FullScreen } from './FullScreen'
 
 interface PlanCreateSheetProps {
   open: boolean
@@ -62,7 +62,7 @@ export function PlanCreateSheet({ open, data, onClose, onCreate }: PlanCreateShe
   }
 
   return (
-    <BottomSheet
+    <FullScreen
       open={open}
       title="Новый план"
       onClose={onClose}
@@ -146,6 +146,6 @@ export function PlanCreateSheet({ open, data, onClose, onCreate }: PlanCreateShe
           {chapterCount} глав · {durationDays > 0 ? `${durationDays} дн.` : 'укажите срок'} · ~{chaptersPerDay} гл./день
         </p>
       </form>
-    </BottomSheet>
+    </FullScreen>
   )
 }

@@ -7,7 +7,6 @@ import { usePresence } from '../hooks/usePresence'
 import { PlanCreateSheet } from './PlanCreateSheet'
 import { PlanDetailView } from './PlanDetailView'
 import { ProgressBar } from './ProgressBar'
-import { PlusIcon } from './icons'
 
 interface PlansViewProps {
   data: BibleData
@@ -66,8 +65,8 @@ export function PlansView({
           <h1 className="screen-title">Планы</h1>
           <p className="screen-subtitle">Чтение по расписанию</p>
         </div>
-        <button type="button" className="fab" aria-label="Создать план" onClick={() => setCreateOpen(true)}>
-          <PlusIcon />
+        <button type="button" className="nav-text" onClick={() => setCreateOpen(true)}>
+          Добавить
         </button>
       </header>
 

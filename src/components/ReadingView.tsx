@@ -9,8 +9,7 @@ import {
 } from '../services/bibleService'
 import { NT_FIRST_BOOK_ID } from '../data/constants'
 import { useHorizontalSwipe } from '../hooks/useHorizontalSwipe'
-import { BottomSheet } from './BottomSheet'
-import { ChevronLeftIcon, ChevronRightIcon } from './icons'
+import { FullScreen } from './FullScreen'
 
 interface ReadingViewProps {
   data: BibleData
@@ -60,32 +59,11 @@ export function ReadingView({ data, bookId, chapterId, onNavigate }: ReadingView
   return (
     <div className="reading-screen">
       <header className="reader-nav">
-        <button
-          type="button"
-          className="reader-nav__chevron"
-          aria-label="Предыдущая глава"
-          disabled={!prev}
-          onClick={goPrev}
-        >
-          <ChevronLeftIcon />
-        </button>
         <button type="button" className="header-picker" onClick={openPicker}>
           <span className="header-picker__label">Синодальный перевод</span>
           <span className="header-picker__value">
             {location ? formatReference(location) : 'Выберите главу'}
-            <span className="header-picker__chevron" aria-hidden="true">
-              ▾
-            </span>
           </span>
-        </button>
-        <button
-          type="button"
-          className="reader-nav__chevron"
-          aria-label="Следующая глава"
-          disabled={!next}
-          onClick={goNext}
-        >
-          <ChevronRightIcon />
         </button>
       </header>
 
@@ -106,9 +84,9 @@ export function ReadingView({ data, bookId, chapterId, onNavigate }: ReadingView
         </article>
       </div>
 
-      <BottomSheet
+      <FullScreen
         open={pickerOpen}
-        title={pickerStep === 'book' ? 'Выбор книги' : draftBook?.BookName ?? 'Глава'}
+        title={pickerStep === 'book' ? 'Книга' : draftBook?.BookName ?? 'Глава'}
         onClose={() => setPickerOpen(false)}
       >
         {pickerStep === 'book' ? (
@@ -148,6 +126,9 @@ export function ReadingView({ data, bookId, chapterId, onNavigate }: ReadingView
           </div>
         ) : (
           <>
+            <button type="button" className="text-button" onClick={() => setPickerStep('book')}>
+              Все книги
+            </button>
             <div className="chapter-grid">
               {draftBook?.Chapters.map((item) => (
                 <button
@@ -162,12 +143,9 @@ export function ReadingView({ data, bookId, chapterId, onNavigate }: ReadingView
                 </button>
               ))}
             </div>
-            <button type="button" className="text-button" onClick={() => setPickerStep('book')}>
-              Другая книга
-            </button>
           </>
         )}
-      </BottomSheet>
+      </FullScreen>
     </div>
   )
 }
