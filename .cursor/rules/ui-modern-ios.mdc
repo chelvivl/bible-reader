@@ -1,0 +1,38 @@
+---
+description: Современный живой UI и iOS-адаптация для Bible Reader PWA
+alwaysApply: true
+---
+
+# Bible Reader — UI и iOS
+
+## Общий принцип
+
+Интерфейс должен ощущаться как **нативное iOS-приложение 2025+**: современный, живой, спокойный, без шаблонного «веб-2018» вида.
+
+## Современный и живой UI
+
+Делать:
+- Мягкие поверхности, воздух, чёткая типографическая иерархия
+- Плавные micro-interactions: hover/active/focus, переходы 150–250 ms, `prefers-reduced-motion`
+- Тактильная обратная связь на действиях (active scale, ripple/tint, loading на кнопке, не полноэкранный блокер)
+- Акцент через иконку, tint и типографику — не через кричащие баннеры и градиентные шапки
+- Bottom sheets, segmented controls, pill-кнопки, card-based layout — как в современных mobile-first продуктах
+- Состояния empty/loading/error — аккуратные, с понятным следующим шагом
+
+Не делать:
+- Тяжёлые тени, неон, «яркие» alert-шапки, устаревшие dialog-паттерны
+- Промежуточные «сначала рабочий, потом красивый» решения — сразу финальное качество
+- Статичные экраны без отклика на touch и scroll
+
+## iOS-адаптация (PWA)
+
+Обязательно учитывать:
+- `viewport-fit=cover`, safe-area insets (`env(safe-area-inset-*)`) для notch/home indicator
+- `-webkit-tap-highlight-color: transparent`, `touch-action: manipulation`, минимум 44×44 px для tap targets
+- `100dvh` / dynamic viewport вместо жёсткого `100vh`
+- `-webkit-overflow-scrolling: touch`, корректный scroll в nested containers
+- PWA meta: `apple-mobile-web-app-capable`, `apple-mobile-web-app-status-bar-style`, `theme-color`, `apple-touch-icon`
+- Standalone mode: не полагаться на hover; primary input — touch
+- Шрифты и spacing, комфортные для чтения длинных текстов на iPhone
+
+Перед сдачей UI спросить себя: **выглядит и ощущается ли это как iOS-ready продукт, а не просто сайт в браузере?**
