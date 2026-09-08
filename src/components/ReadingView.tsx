@@ -8,6 +8,7 @@ import {
   getChapterLocation,
 } from '../services/bibleService'
 import { NT_FIRST_BOOK_ID } from '../data/constants'
+import { useHorizontalSwipe } from '../hooks/useHorizontalSwipe'
 import { BottomSheet } from './BottomSheet'
 import { ChevronLeftIcon, ChevronRightIcon } from './icons'
 
@@ -30,6 +31,16 @@ export function ReadingView({ data, bookId, chapterId, onNavigate }: ReadingView
   const ntBooks = useMemo(() => data.Books.filter((item) => item.BookId >= NT_FIRST_BOOK_ID), [data])
   const draftBook = getBook(data, draftBookId)
 
+  const goPrev = () => prev && onNavigate(prev.bookId, prev.chapterId)
+  const goNext = () => next && onNavigate(next.bookId, next.chapterId)
+
+  const swipe = useHorizontalSwipe({
+    onPrev: goPrev,
+    onNext: goNext,
+    enabledPrev: Boolean(prev),
+    enabledNext: Boolean(next),
+  })
+
   const openPicker = () => {
     setDraftBookId(bookId)
     setPickerStep('book')
@@ -48,19 +59,37 @@ export function ReadingView({ data, bookId, chapterId, onNavigate }: ReadingView
 
   return (
     <div className="reading-screen">
-      <header className="screen-header">
+      <header className="reader-nav">
+        <button
+          type="button"
+          className="reader-nav__chevron"
+          aria-label="Предыдущая глава"
+          disabled={!prev}
+          onClick={goPrev}
+        >
+          <ChevronLeftIcon />
+        </button>
         <button type="button" className="header-picker" onClick={openPicker}>
           <span className="header-picker__label">Синодальный перевод</span>
           <span className="header-picker__value">
             {location ? formatReference(location) : 'Выберите главу'}
             <span className="header-picker__chevron" aria-hidden="true">
-              ›
+              ▾
             </span>
           </span>
         </button>
+        <button
+          type="button"
+          className="reader-nav__chevron"
+          aria-label="Следующая глава"
+          disabled={!next}
+          onClick={goNext}
+        >
+          <ChevronRightIcon />
+        </button>
       </header>
 
-      <div className="reading-body">
+      <div className="reading-body" {...swipe}>
         <article className="passage-card">
           {chapter ? (
             <p className="passage-card__text">
@@ -75,27 +104,6 @@ export function ReadingView({ data, bookId, chapterId, onNavigate }: ReadingView
             <p className="empty-state">Глава не найдена</p>
           )}
         </article>
-      </div>
-
-      <div className="chapter-nav">
-        <button
-          type="button"
-          className="nav-pill"
-          disabled={!prev}
-          onClick={() => prev && onNavigate(prev.bookId, prev.chapterId)}
-        >
-          <ChevronLeftIcon />
-          <span>Назад</span>
-        </button>
-        <button
-          type="button"
-          className="nav-pill"
-          disabled={!next}
-          onClick={() => next && onNavigate(next.bookId, next.chapterId)}
-        >
-          <span>Далее</span>
-          <ChevronRightIcon />
-        </button>
       </div>
 
       <BottomSheet
@@ -155,7 +163,7 @@ export function ReadingView({ data, bookId, chapterId, onNavigate }: ReadingView
               ))}
             </div>
             <button type="button" className="text-button" onClick={() => setPickerStep('book')}>
-              ← Другая книга
+              Другая книга
             </button>
           </>
         )}

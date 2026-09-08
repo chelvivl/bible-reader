@@ -62,27 +62,41 @@ export function PlanCreateSheet({ open, data, onClose, onCreate }: PlanCreateShe
   }
 
   return (
-    <BottomSheet open={open} title="Новый план чтения" onClose={onClose}>
-      <form className="plan-form" onSubmit={handleSubmit}>
+    <BottomSheet
+      open={open}
+      title="Новый план"
+      onClose={onClose}
+      footer={
+        <button
+          type="submit"
+          form="plan-create-form"
+          className="primary-button"
+          disabled={!name.trim() || durationDays <= 0}
+        >
+          Создать
+        </button>
+      }
+    >
+      <form id="plan-create-form" className="plan-form" onSubmit={handleSubmit}>
         <label className="field">
           <span className="field__label">Название</span>
           <input
             className="field__input"
             value={name}
             onChange={(event) => setName(event.target.value)}
-            placeholder="Например, Библия за год"
+            placeholder="Библия за год"
             required
           />
         </label>
 
         <fieldset className="field">
-          <legend className="field__label">Охват чтения</legend>
-          <div className="option-row">
+          <legend className="field__label">Охват</legend>
+          <div className="segmented">
             {(Object.keys(SCOPE_LABELS) as PlanScope[]).map((value) => (
               <button
                 key={value}
                 type="button"
-                className={`option-chip${scope === value ? ' option-chip--active' : ''}`}
+                className={`segmented__item${scope === value ? ' is-active' : ''}`}
                 onClick={() => setScope(value)}
               >
                 {SCOPE_LABELS[value]}
@@ -92,13 +106,13 @@ export function PlanCreateSheet({ open, data, onClose, onCreate }: PlanCreateShe
         </fieldset>
 
         <fieldset className="field">
-          <legend className="field__label">Срок чтения</legend>
-          <div className="option-row option-row--wrap">
+          <legend className="field__label">Срок</legend>
+          <div className="chip-row">
             {(Object.keys(DURATION_LABELS) as DurationPreset[]).map((value) => (
               <button
                 key={value}
                 type="button"
-                className={`option-chip${durationPreset === value ? ' option-chip--active' : ''}`}
+                className={`chip${durationPreset === value ? ' is-active' : ''}`}
                 onClick={() => setDurationPreset(value)}
               >
                 {DURATION_LABELS[value]}
@@ -128,17 +142,9 @@ export function PlanCreateSheet({ open, data, onClose, onCreate }: PlanCreateShe
           />
         </label>
 
-        <div className="plan-preview">
-          <span>{chapterCount} глав</span>
-          <span>·</span>
-          <span>{durationDays > 0 ? `${durationDays} дней` : 'Укажите срок'}</span>
-          <span>·</span>
-          <span>~{chaptersPerDay} глав/день</span>
-        </div>
-
-        <button type="submit" className="primary-button" disabled={!name.trim() || durationDays <= 0}>
-          Создать план
-        </button>
+        <p className="plan-preview">
+          {chapterCount} глав · {durationDays > 0 ? `${durationDays} дн.` : 'укажите срок'} · ~{chaptersPerDay} гл./день
+        </p>
       </form>
     </BottomSheet>
   )

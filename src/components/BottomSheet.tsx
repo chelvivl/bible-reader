@@ -8,9 +8,10 @@ interface BottomSheetProps {
   title: string
   onClose: () => void
   children: ReactNode
+  footer?: ReactNode
 }
 
-export function BottomSheet({ open, title, onClose, children }: BottomSheetProps) {
+export function BottomSheet({ open, title, onClose, children, footer }: BottomSheetProps) {
   const { mounted, visible } = usePresence(open, 340)
 
   useEffect(() => {
@@ -35,6 +36,7 @@ export function BottomSheet({ open, title, onClose, children }: BottomSheetProps
           </button>
         </div>
         <div className="sheet-body">{children}</div>
+        {footer && <div className="sheet-footer">{footer}</div>}
       </div>
     </div>,
     document.body,
