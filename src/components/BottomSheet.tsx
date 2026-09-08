@@ -1,5 +1,6 @@
 import { useEffect, type ReactNode } from 'react'
 import { createPortal } from 'react-dom'
+import { usePresence } from '../hooks/usePresence'
 import { CloseIcon } from './icons'
 
 interface BottomSheetProps {
@@ -10,18 +11,20 @@ interface BottomSheetProps {
 }
 
 export function BottomSheet({ open, title, onClose, children }: BottomSheetProps) {
+  const { mounted, visible } = usePresence(open, 340)
+
   useEffect(() => {
-    if (!open) return undefined
+    if (!mounted) return undefined
     document.body.classList.add('sheet-open')
     return () => {
       document.body.classList.remove('sheet-open')
     }
-  }, [open])
+  }, [mounted])
 
-  if (!open) return null
+  if (!mounted) return null
 
   return createPortal(
-    <div className="sheet-root" role="presentation">
+    <div className={`sheet-root${visible ? ' is-open' : ''}`} role="presentation">
       <button type="button" className="sheet-backdrop" aria-label="Закрыть" onClick={onClose} />
       <div className="sheet-panel" role="dialog" aria-modal="true" aria-label={title}>
         <div className="sheet-handle" aria-hidden="true" />

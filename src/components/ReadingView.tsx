@@ -15,19 +15,11 @@ interface ReadingViewProps {
   data: BibleData
   bookId: number
   chapterId: number
-  pickerOpen: boolean
-  onPickerOpenChange: (open: boolean) => void
   onNavigate: (bookId: number, chapterId: number) => void
 }
 
-export function ReadingView({
-  data,
-  bookId,
-  chapterId,
-  pickerOpen,
-  onPickerOpenChange,
-  onNavigate,
-}: ReadingViewProps) {
+export function ReadingView({ data, bookId, chapterId, onNavigate }: ReadingViewProps) {
+  const [pickerOpen, setPickerOpen] = useState(false)
   const [pickerStep, setPickerStep] = useState<'book' | 'chapter'>('book')
   const [draftBookId, setDraftBookId] = useState(bookId)
 
@@ -41,11 +33,7 @@ export function ReadingView({
   const openPicker = () => {
     setDraftBookId(bookId)
     setPickerStep('book')
-    onPickerOpenChange(true)
-  }
-
-  const closePicker = () => {
-    onPickerOpenChange(false)
+    setPickerOpen(true)
   }
 
   const selectBook = (nextBookId: number) => {
@@ -55,25 +43,39 @@ export function ReadingView({
 
   const selectChapter = (nextChapterId: number) => {
     onNavigate(draftBookId, nextChapterId)
-    closePicker()
+    setPickerOpen(false)
   }
 
   return (
-    <>
-      <article className="passage-card">
-        {chapter ? (
-          <p className="passage-card__text">
-            {chapter.Verses.map((verse) => (
-              <span key={verse.VerseId}>
-                <span className="verse-num">{verse.VerseId}</span>
-                {verse.Text}{' '}
-              </span>
-            ))}
-          </p>
-        ) : (
-          <p className="empty-state">Глава не найдена</p>
-        )}
-      </article>
+    <div className="reading-screen">
+      <header className="screen-header">
+        <button type="button" className="header-picker" onClick={openPicker}>
+          <span className="header-picker__label">Синодальный перевод</span>
+          <span className="header-picker__value">
+            {location ? formatReference(location) : 'Выберите главу'}
+            <span className="header-picker__chevron" aria-hidden="true">
+              ›
+            </span>
+          </span>
+        </button>
+      </header>
+
+      <div className="reading-body">
+        <article className="passage-card">
+          {chapter ? (
+            <p className="passage-card__text">
+              {chapter.Verses.map((verse) => (
+                <span key={verse.VerseId}>
+                  <span className="verse-num">{verse.VerseId}</span>
+                  {verse.Text}{' '}
+                </span>
+              ))}
+            </p>
+          ) : (
+            <p className="empty-state">Глава не найдена</p>
+          )}
+        </article>
+      </div>
 
       <div className="chapter-nav">
         <button
@@ -84,13 +86,6 @@ export function ReadingView({
         >
           <ChevronLeftIcon />
           <span>Назад</span>
-        </button>
-        <button
-          type="button"
-          className="nav-pill nav-pill--accent"
-          onClick={openPicker}
-        >
-          {location ? formatReference(location) : 'Глава'}
         </button>
         <button
           type="button"
@@ -106,7 +101,7 @@ export function ReadingView({
       <BottomSheet
         open={pickerOpen}
         title={pickerStep === 'book' ? 'Выбор книги' : draftBook?.BookName ?? 'Глава'}
-        onClose={closePicker}
+        onClose={() => setPickerOpen(false)}
       >
         {pickerStep === 'book' ? (
           <div className="picker-sections">
@@ -165,6 +160,6 @@ export function ReadingView({
           </>
         )}
       </BottomSheet>
-    </>
+    </div>
   )
 }
