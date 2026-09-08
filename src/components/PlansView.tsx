@@ -71,10 +71,7 @@ export function PlansView({
 
   return (
     <>
-      <div className="section-header">
-        <div>
-          <h2 className="section-title">Мои планы</h2>
-        </div>
+      <div className="section-header section-header--fab-only">
         <button type="button" className="fab" aria-label="Создать план" onClick={() => setCreateOpen(true)}>
           <PlusIcon />
         </button>

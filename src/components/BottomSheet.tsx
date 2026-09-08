@@ -1,4 +1,5 @@
-import type { ReactNode } from 'react'
+import { useEffect, type ReactNode } from 'react'
+import { createPortal } from 'react-dom'
 import { CloseIcon } from './icons'
 
 interface BottomSheetProps {
@@ -9,9 +10,17 @@ interface BottomSheetProps {
 }
 
 export function BottomSheet({ open, title, onClose, children }: BottomSheetProps) {
+  useEffect(() => {
+    if (!open) return undefined
+    document.body.classList.add('sheet-open')
+    return () => {
+      document.body.classList.remove('sheet-open')
+    }
+  }, [open])
+
   if (!open) return null
 
-  return (
+  return createPortal(
     <div className="sheet-root" role="presentation">
       <button type="button" className="sheet-backdrop" aria-label="Закрыть" onClick={onClose} />
       <div className="sheet-panel" role="dialog" aria-modal="true" aria-label={title}>
@@ -24,6 +33,7 @@ export function BottomSheet({ open, title, onClose, children }: BottomSheetProps
         </div>
         <div className="sheet-body">{children}</div>
       </div>
-    </div>
+    </div>,
+    document.body,
   )
 }

@@ -4,6 +4,7 @@ import { PlansView } from './components/PlansView'
 import { ReadingView } from './components/ReadingView'
 import { useBible } from './hooks/useBible'
 import { usePlans } from './hooks/usePlans'
+import { formatReference, getChapterLocation } from './services/bibleService'
 
 type Tab = 'read' | 'plans'
 
@@ -13,25 +14,38 @@ function App() {
   const [activeTab, setActiveTab] = useState<Tab>('read')
   const [bookId, setBookId] = useState(1)
   const [chapterId, setChapterId] = useState(1)
+  const [pickerOpen, setPickerOpen] = useState(false)
 
   const navigateToChapter = (nextBookId: number, nextChapterId: number) => {
     setBookId(nextBookId)
     setChapterId(nextChapterId)
     setActiveTab('read')
+    setPickerOpen(false)
   }
 
+  const location = data ? getChapterLocation(data, { bookId, chapterId }) : undefined
+  const reference = location ? formatReference(location) : 'Быт. 1'
+
   return (
-    <div className="app">
-      <header className="app-header">
-        <div>
-          <h1 className="app-header__title">
-            {activeTab === 'read' ? 'Чтение' : 'Планы'}
-          </h1>
-          {activeTab === 'read' && (
-            <p className="app-header__subtitle">Синодальный перевод</p>
+    <div className={`app${pickerOpen ? ' app--sheet-open' : ''}`}>
+      {!pickerOpen && (
+        <header className="app-header">
+          {activeTab === 'read' ? (
+            <button type="button" className="header-picker" onClick={() => setPickerOpen(true)}>
+              <span className="header-picker__label">Синодальный перевод</span>
+              <span className="header-picker__value">
+                {reference}
+                <span className="header-picker__chevron" aria-hidden="true">›</span>
+              </span>
+            </button>
+          ) : (
+            <div>
+              <h1 className="app-header__title">Планы</h1>
+              <p className="app-header__subtitle">Чтение по расписанию</p>
+            </div>
           )}
-        </div>
-      </header>
+        </header>
+      )}
 
       <main className="reader">
         {loading && <div className="loading-card">Загрузка текста Библии…</div>}
@@ -42,6 +56,8 @@ function App() {
             data={data}
             bookId={bookId}
             chapterId={chapterId}
+            pickerOpen={pickerOpen}
+            onPickerOpenChange={setPickerOpen}
             onNavigate={(nextBookId, nextChapterId) => {
               setBookId(nextBookId)
               setChapterId(nextChapterId)
@@ -62,7 +78,7 @@ function App() {
         )}
       </main>
 
-      <BottomNav activeTab={activeTab} onChange={setActiveTab} />
+      {!pickerOpen && <BottomNav activeTab={activeTab} onChange={setActiveTab} />}
     </div>
   )
 }
